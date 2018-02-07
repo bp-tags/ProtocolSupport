@@ -50,7 +50,9 @@ public class PlayerInfo extends MiddlePlayerInfo {
 					MiscSerializer.writeUUID(serializer, connection.getVersion(), info.uuid.equals(connection.getPlayer().getUniqueId()) ? cache.getPEClientUUID() : info.uuid);
 					VarNumberSerializer.writeVarInt(serializer, 0); //entity id
 					StringSerializer.writeString(serializer, version, info.getName(cache.getLocale()));
-					Any<Boolean, String> skininfo = getSkinInfo(info);
+					StringSerializer.writeString(serializer, version, ""); //Third party name...
+					VarNumberSerializer.writeSVarInt(serializer, 0); //Platform id :F
+					Any<Boolean, String> skininfo = null; //getSkinInfo(info);
 					byte[] skindata = skininfo != null ? skinprovider.getSkinData(skininfo.getObj2()) : null;
 					if (skindata != null) {
 						writeSkinData(version, serializer, false, skininfo.getObj1(), skindata);
@@ -61,6 +63,7 @@ public class PlayerInfo extends MiddlePlayerInfo {
 						}
 					}
 					StringSerializer.writeString(serializer, version, ""); //xuid
+					StringSerializer.writeString(serializer, version, ""); //Platform chat id..
 				}
 				return RecyclableSingletonList.create(serializer);
 			}
@@ -125,16 +128,17 @@ public class PlayerInfo extends MiddlePlayerInfo {
 
 	protected static void writeSkinData(ProtocolVersion version, ByteBuf serializer, boolean isSkinUpdate, boolean isSlim, byte[] skindata) {
 		PESkinModel model = PESkinModel.getSkinModel(isSlim);
-		if (isSkinUpdate) {
-			StringSerializer.writeString(serializer, version, model.getSkinId());
-		}
+		if (isSkinUpdate) { StringSerializer.writeString(serializer, version, model.getSkinId()); }
 		StringSerializer.writeString(serializer, version, model.getSkinName());
-		if (isSkinUpdate) {
-			//TODO: find out how it is used and if its use matters.
-			StringSerializer.writeString(serializer, version, "Steve");
-		}
+		if (isSkinUpdate) { StringSerializer.writeString(serializer, version, "Steve"); } //Doesn't seem to impact anything but needs to be send!
+		serializer.writeIntLE(1); //Number of skins. (Always 1, we substitute Steve if no data is present)
+		if (isSkinUpdate) { serializer.writeIntLE(skindata.length); }
 		ArraySerializer.writeByteArray(serializer, version, skindata);
-		ArraySerializer.writeByteArray(serializer, version, new byte[0]); //cape data
+		serializer.writeIntLE(0); //TODO do capes.
+		if (isSkinUpdate) {
+			serializer.writeIntLE(0);
+			ArraySerializer.writeByteArray(serializer, version, new byte[0]);
+		}
 		StringSerializer.writeString(serializer, version, model.getGeometryId());
 		StringSerializer.writeString(serializer, version, model.getGeometryData());
 	}

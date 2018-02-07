@@ -63,12 +63,16 @@ public class Login extends MiddleLogin {
 		startgame.writeBoolean(false); //trust players
 		VarNumberSerializer.writeSVarInt(startgame, PEAdventureSettings.GROUP_NORMAL); //permission level
 		VarNumberSerializer.writeSVarInt(startgame, 4); //game publish setting
+		startgame.writeIntLE(0); //Chunk tick range
+		startgame.writeBoolean(false); //hasPlatformBroadcast
+		VarNumberSerializer.writeSVarInt(startgame, 0); //platform broadcast mode
+		startgame.writeBoolean(false); //xboxLice broadcast intent?
 		StringSerializer.writeString(startgame, connection.getVersion(), ""); //level ID (empty string)
 		StringSerializer.writeString(startgame, connection.getVersion(), ""); //world name (empty string)
 		StringSerializer.writeString(startgame, connection.getVersion(), ""); //premium world template id (empty string)
-		startgame.writeBoolean(false); //unknown bool
+		startgame.writeBoolean(false); //is trial
 		startgame.writeLongLE(0); //world ticks
-		VarNumberSerializer.writeSVarInt(startgame, 0); //enchantment seed
+		VarNumberSerializer.writeSVarInt(startgame, 0); //enchantment seed, FFS MOJANG
 		packets.add(startgame);
 		packets.add(PEAdventureSettings.createPacket(cache));
 		packets.add(LoginSuccess.createPlayStatus(version, 3));

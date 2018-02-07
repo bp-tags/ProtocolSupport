@@ -29,6 +29,9 @@ public class PositionLook extends ServerBoundMiddlePacket {
 		y = MiscSerializer.readLFloat(clientdata) - 1.6200000047683716D;
 		z = MiscSerializer.readLFloat(clientdata);
 		pitch = MiscSerializer.readLFloat(clientdata);
+		System.out.println(x);
+		System.out.println(y);
+		System.out.println(z);
 		yaw = MiscSerializer.readLFloat(clientdata);
 		MiscSerializer.readLFloat(clientdata); //head yaw
 		clientdata.readByte(); //mode

@@ -22,6 +22,7 @@ public class Chat extends MiddleChat {
 		StringSerializer.readString(clientdata, version); //skip sender
 		message = StringSerializer.readString(clientdata, version);
 		StringSerializer.readString(clientdata, version); //Xbox user ID
+		StringSerializer.readString(clientdata, version); //Platform ID
 	}
 
 }
