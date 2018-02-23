@@ -9,8 +9,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import protocolsupport.api.ProtocolVersion;
+import protocolsupport.api.unsafe.peskins.PESkinsProviderSPI;
 import protocolsupport.commands.CommandHandler;
 import protocolsupport.listeners.FeatureEmulation;
+import protocolsupport.listeners.InternalPluginMessageRequest;
 import protocolsupport.listeners.MultiplePassengersRestrict;
 import protocolsupport.listeners.ReloadCommandBlocker;
 import protocolsupport.protocol.packet.ClientBoundPacket;
@@ -24,6 +26,7 @@ import protocolsupport.protocol.typeremapper.legacy.LegacyEffect;
 import protocolsupport.protocol.typeremapper.legacy.LegacyEntityType;
 import protocolsupport.protocol.typeremapper.legacy.LegacyPotion;
 import protocolsupport.protocol.typeremapper.mapcolor.MapColorRemapper;
+import protocolsupport.protocol.typeremapper.pe.PESkinModel;
 import protocolsupport.protocol.typeremapper.sound.SoundRemapper;
 import protocolsupport.protocol.typeremapper.tileentity.TileNBTRemapper;
 import protocolsupport.protocol.typeremapper.watchedentity.remapper.DataWatcherObjectIndex;
@@ -40,6 +43,7 @@ import protocolsupport.utils.Utils;
 import protocolsupport.utils.netty.Allocator;
 import protocolsupport.utils.netty.Compressor;
 import protocolsupport.zplatform.ServerPlatform;
+import protocolsupport.zplatform.impl.pe.PEProxyServer;
 
 public class ProtocolSupport extends JavaPlugin {
 
@@ -58,6 +62,8 @@ public class ProtocolSupport extends JavaPlugin {
 	public BuildInfo getBuildInfo() {
 		return buildinfo;
 	}
+
+	private PEProxyServer peserver;
 
 	@Override
 	public void onLoad() {
@@ -106,6 +112,8 @@ public class ProtocolSupport extends JavaPlugin {
 			Class.forName(LegacyPotion.class.getName());
 			Class.forName(LegacyEntityType.class.getName());
 			Class.forName(LegacyEffect.class.getName());
+			Class.forName(PESkinsProviderSPI.class.getName());
+			Class.forName(PESkinModel.class.getName());
 			ServerPlatform.get().inject();
 		} catch (Throwable t) {
 			getLogger().log(Level.SEVERE, "Error when loading, make sure you are using supported server version", t);
@@ -115,15 +123,22 @@ public class ProtocolSupport extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
+		ServerPlatform.get().onEnable();
 		getCommand("protocolsupport").setExecutor(new CommandHandler());
 		getServer().getPluginManager().registerEvents(new FeatureEmulation(), this);
 		getServer().getPluginManager().registerEvents(new ReloadCommandBlocker(), this);
 		getServer().getPluginManager().registerEvents(new MultiplePassengersRestrict(), this);
+		getServer().getMessenger().registerIncomingPluginChannel(this, InternalPluginMessageRequest.TAG, new InternalPluginMessageRequest());
+		getServer().getScheduler().scheduleSyncDelayedTask(this, () -> (peserver = new PEProxyServer()).start());
 	}
 
 	@Override
 	public void onDisable() {
 		Bukkit.shutdown();
+		ServerPlatform.get().onDisable();
+		if (peserver != null) {
+			peserver.stop();
+		}
 	}
 
 	public static void logInfo(String message) {

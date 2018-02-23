@@ -16,10 +16,15 @@ import protocolsupport.protocol.typeremapper.itemstack.toclient.BookPagesToLegac
 import protocolsupport.protocol.typeremapper.itemstack.toclient.DragonHeadSpecificRemapper;
 import protocolsupport.protocol.typeremapper.itemstack.toclient.EmptyBookPageAdderSpecificRemapper;
 import protocolsupport.protocol.typeremapper.itemstack.toclient.EnchantFilterNBTSpecificRemapper;
+import protocolsupport.protocol.typeremapper.itemstack.toclient.EnchantToPEEnchantSpecificRemapper;
+import protocolsupport.protocol.typeremapper.itemstack.toclient.FireworkToPETagSpecificRemapper;
+import protocolsupport.protocol.typeremapper.itemstack.toclient.MapItemLegacyIdToNbtSpecificRemapper;
 import protocolsupport.protocol.typeremapper.itemstack.toclient.MonsterEggToLegacyIdSpecificRemapper;
 import protocolsupport.protocol.typeremapper.itemstack.toclient.MonsterEggToLegacyNameSpecificRemapper;
+import protocolsupport.protocol.typeremapper.itemstack.toclient.MonsterEggToPEIdSpecificRemapper;
 import protocolsupport.protocol.typeremapper.itemstack.toclient.PlayerSkullToLegacyOwnerSpecificRemapper;
 import protocolsupport.protocol.typeremapper.itemstack.toclient.PotionToLegacyIdSpecificRemapper;
+import protocolsupport.protocol.typeremapper.itemstack.toclient.PotionToPEIdSpecificRemapper;
 import protocolsupport.protocol.typeremapper.utils.RemappingRegistry;
 import protocolsupport.protocol.typeremapper.utils.RemappingTable.ComplexIdRemappingTable;
 import protocolsupport.protocol.utils.ProtocolVersionsHelper;
@@ -245,8 +250,22 @@ public class ItemStackRemapper {
 		registerToClientRemapper(Material.LINGERING_POTION, new PotionToLegacyIdSpecificRemapper(true), ProtocolVersionsHelper.BEFORE_1_9);
 		registerToClientRemapper(Material.WRITTEN_BOOK, new BookPagesToLegacyTextSpecificRemapper(), ProtocolVersionsHelper.BEFORE_1_8);
 		registerToClientRemapper(Material.BOOK_AND_QUILL, new EmptyBookPageAdderSpecificRemapper(), ProtocolVersionsHelper.ALL_PC);
+		registerToClientRemapper(Material.MAP, new MapItemLegacyIdToNbtSpecificRemapper(), ProtocolVersion.MINECRAFT_PE);
+		PotionToPEIdSpecificRemapper pepotion = new PotionToPEIdSpecificRemapper();
+		registerToClientRemapper(Material.POTION, pepotion, ProtocolVersion.MINECRAFT_PE);
+		registerToClientRemapper(Material.SPLASH_POTION, pepotion, ProtocolVersion.MINECRAFT_PE);
+		registerToClientRemapper(Material.MONSTER_EGG, new MonsterEggToPEIdSpecificRemapper(), ProtocolVersion.MINECRAFT_PE);
+		registerToClientRemapper(Material.FIREWORK_CHARGE, new FireworkToPETagSpecificRemapper(), ProtocolVersion.MINECRAFT_PE);
+		registerToClientRemapper(Material.FIREWORK, new FireworkToPETagSpecificRemapper(), ProtocolVersion.MINECRAFT_PE);
 		EnchantFilterNBTSpecificRemapper enchantfilter = new EnchantFilterNBTSpecificRemapper();
-		Arrays.stream(Material.values()).forEach(material -> registerToClientRemapper(material, enchantfilter, ProtocolVersionsHelper.ALL_PC));
+		Arrays.stream(Material.values()).forEach(material -> {
+			registerToClientRemapper(material, enchantfilter, ProtocolVersionsHelper.ALL_PC);
+			registerToClientRemapper(material, enchantfilter, ProtocolVersion.MINECRAFT_PE);
+		});
+		EnchantToPEEnchantSpecificRemapper peenchantremapper = new EnchantToPEEnchantSpecificRemapper();
+		Arrays.stream(Material.values()).forEach(material -> {
+			registerToClientRemapper(material, peenchantremapper, ProtocolVersion.MINECRAFT_PE);
+		});
 		registerFromClientRemapper(Material.POTION, new PotionFromLegacyIdRemapper(), ProtocolVersionsHelper.BEFORE_1_9);
 		registerFromClientRemapper(Material.MONSTER_EGG, new MonsterEggFromLegacyIdRemapper(), ProtocolVersionsHelper.BEFORE_1_9);
 	}

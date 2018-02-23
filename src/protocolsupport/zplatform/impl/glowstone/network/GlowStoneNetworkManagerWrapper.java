@@ -2,7 +2,11 @@ package protocolsupport.zplatform.impl.glowstone.network;
 
 import java.net.InetSocketAddress;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.bukkit.entity.Player;
@@ -33,6 +37,10 @@ public class GlowStoneNetworkManagerWrapper extends NetworkManagerWrapper {
 		return session.getChannel().attr(packet_listener_key).get();
 	}
 
+	public static GlowStoneNetworkManagerWrapper getFromChannel(Channel channel) {
+		return new GlowStoneNetworkManagerWrapper((MessageHandler) channel.pipeline().get(GlowStoneChannelHandlers.NETWORK_MANAGER));
+	}
+
 	private final MessageHandler handler;
 	public GlowStoneNetworkManagerWrapper(MessageHandler handler) {
 		this.handler = handler;
@@ -45,6 +53,16 @@ public class GlowStoneNetworkManagerWrapper extends NetworkManagerWrapper {
 	@Override
 	public Object unwrap() {
 		return handler;
+	}
+
+	public NetworkState getProtocol() {
+		AbstractProtocol proto = getSession().getProtocol();
+		for (ProtocolType type : ProtocolType.values()) {
+			if (type.getProtocol() == proto) {
+				return GlowStoneMiscUtils.protocolToNetState(type);
+			}
+		}
+		throw new IllegalStateException(MessageFormat.format("Unkown protocol {0}", proto));
 	}
 
 	@Override

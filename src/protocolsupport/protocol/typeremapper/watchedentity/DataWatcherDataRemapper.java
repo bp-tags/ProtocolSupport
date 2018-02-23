@@ -25,6 +25,10 @@ public class DataWatcherDataRemapper {
 		}
 	}
 
+	public ArrayMap<DataWatcherObject<?>> getOriginal() {
+		return originalMetadata;
+	}
+
 	public ArrayMap<DataWatcherObject<?>> getRemapped() {
 		return remappedMetadata;
 	}

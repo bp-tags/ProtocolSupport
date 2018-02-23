@@ -51,6 +51,11 @@ public class Position {
 	}
 
 	@Override
+	public Position clone() {
+		return new Position(x, y, z);
+	}
+
+	@Override
 	public String toString() {
 		return Utils.toStringAllFields(this);
 	}
